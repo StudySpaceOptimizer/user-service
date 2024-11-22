@@ -354,4 +354,48 @@ class UserProfileControllerTest extends TestCase
         $response->assertStatus(400)
                  ->assertJson(['error' => 'User not found']);
     }
+
+    public function testGrantRoleSuccess()
+    {
+        $user = UserProfile::factory()->create([
+            'email' => 'test@example.com',
+            'role' => 'user',
+        ]);
+
+        $response = $this->postJson("/api/users/{$user->email}/grant-role", [
+            'role' => 'admin',
+        ]);
+
+        $response->assertStatus(204);
+
+        $this->assertDatabaseHas('user_profiles', [
+            'email' => $user->email,
+            'role' => 'admin',
+        ]);
+    }
+
+    public function testGrantRoleInvalidRole()
+    {
+        $user = UserProfile::factory()->create([
+            'email' => 'test@example.com',
+            'role' => 'user',
+        ]);
+
+        $response = $this->postJson("/api/users/{$user->email}/grant-role", [
+            'role' => 'invalid-role',
+        ]);
+
+        $response->assertStatus(422)
+                 ->assertJsonValidationErrors('role');
+    }
+
+    public function testGrantRoleUserNotFound()
+    {
+        $response = $this->postJson("/api/users/nonexistent@example.com/grant-role", [
+            'role' => 'admin',
+        ]);
+
+        $response->assertStatus(400)
+                 ->assertJson(['error' => 'User not found']);
+    }
 }

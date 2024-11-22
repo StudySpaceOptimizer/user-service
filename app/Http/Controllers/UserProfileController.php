@@ -193,4 +193,21 @@ class UserProfileController extends Controller
 
         return response()->noContent();
     }
+
+    public function grantRole(Request $request, $email)
+    {
+        $user = UserProfile::where('email', $email)->first();
+
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 400);
+        }
+
+        $data = $request->validate([
+            'role' => 'required|string|in:user,admin',
+        ]);
+
+        $user->update(['role' => $data['role']]);
+
+        return response()->noContent();
+    }
 }

@@ -29,7 +29,7 @@ class UserProfileRequest extends FormRequest
             'filters.email' => 'nullable|email',
             'filters.is_in' => 'nullable|in:true,false,1,0',
             'filters.name' => 'nullable|string|max:255',
-            'filters.role' => 'nullable|string|max:255',
+            'filters.role' => 'nullable|string|in:user,admin',
         ];
     }
 

@@ -20,4 +20,5 @@ Route::get('/users/count', [UserProfileController::class, 'getUsersCount']);
 Route::post('/users/{email}/ban', [UserProfileController::class, 'banUser']);
 Route::delete('/users/{email}/ban', [UserProfileController::class, 'unbanUser']);
 Route::put('/users/{email}/points', [UserProfileController::class, 'updateUserPoints']);
+Route::post('/users/{email}/grant-role', [UserProfileController::class, 'grantRole']);
 Route::get('/auth/callback', [AuthController::class, 'callback']);
