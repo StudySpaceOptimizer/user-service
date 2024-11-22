@@ -19,9 +19,6 @@ class UserProfileController extends Controller
         $query = UserProfile::query();
 
         // 過濾條件
-        if (!empty($filters['user_id'])) {
-            $query->where('id', $filters['user_id']);
-        }
         if (!empty($filters['email'])) {
             $query->where('email', $filters['email']);
         }
@@ -30,6 +27,9 @@ class UserProfileController extends Controller
         }
         if (!empty($filters['name'])) {
             $query->where('name', 'LIKE', '%' . $filters['name'] . '%');
+        }
+        if (!empty($filters['role'])) {
+            $query->where('role', $filters['role']);
         }
 
         // 分頁

@@ -26,10 +26,10 @@ class UserProfileRequest extends FormRequest
         return [
             'pageSize' => 'nullable|integer|min:1|max:100',
             'pageOffset' => 'nullable|integer|min:0',
-            'filters.user_id' => 'nullable|uuid',
             'filters.email' => 'nullable|email',
             'filters.is_in' => 'nullable|in:true,false,1,0',
             'filters.name' => 'nullable|string|max:255',
+            'filters.role' => 'nullable|string|max:255',
         ];
     }
 
