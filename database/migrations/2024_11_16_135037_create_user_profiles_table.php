@@ -9,13 +9,11 @@ class CreateUserProfilesTable extends Migration
     public function up()
     {
         Schema::create('user_profiles', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->string('email')->unique();
+            $table->string('email')->primary(); // 將 email 設為主鍵
             $table->boolean('is_in')->default(false);
             $table->integer('point')->default(0);
             $table->string('name')->nullable();
-            $table->string('phone')->unique()->nullable();
-            $table->string('id_card')->unique()->nullable();
+            $table->enum('role', ['user', 'admin'])->nullable();
             $table->timestamps();
         });
     }
