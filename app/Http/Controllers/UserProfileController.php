@@ -6,6 +6,7 @@ use App\Models\UserProfile;
 use App\Http\Requests\UserProfileRequest;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Carbon\Carbon;
 
 class UserProfileController extends Controller
 {
@@ -156,6 +157,39 @@ class UserProfileController extends Controller
             'ban_reason' => null,
             'ban_end_at' => null,
         ]);
+
+        return response()->noContent();
+    }
+
+    public function updateUserPoints(Request $request, $email)
+    {
+        $user = UserProfile::where('email', $email)->first();
+
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 400);
+        }
+
+        try {
+            $data = $request->validate([
+                'points' => 'required|integer',
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        }
+
+        $user->update([
+            'point' => $data['points'],
+        ]);
+
+        if ($user->point > 10) {
+            $user->update([
+                'ban_reason' => '違規計點超過 10 點自動封禁',
+                'ban_end_at' => Carbon::now()->addDays(7),
+            ]);
+        }
 
         return response()->noContent();
     }

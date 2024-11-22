@@ -305,4 +305,53 @@ class UserProfileControllerTest extends TestCase
             'ban_end_at' => null,
         ]);
     }
+
+    public function testUpdateUserPoints()
+    {
+        $user = UserProfile::factory()->create([
+            'email' => 'test@example.com',
+            'point' => 5,
+        ]);
+
+        $response = $this->putJson("/api/users/{$user->email}/points", [
+            'points' => 8,
+        ]);
+
+        $response->assertStatus(204);
+
+        $this->assertDatabaseHas('user_profiles', [
+            'email' => $user->email,
+            'point' => 8,
+        ]);
+    }
+
+    public function testAutoBanUserWhenPointsExceed10()
+    {
+        $user = UserProfile::factory()->create([
+            'email' => 'test@example.com',
+            'point' => 8,
+        ]);
+
+        $response = $this->putJson("/api/users/{$user->email}/points", [
+            'points' => 13,
+        ]);
+
+        $response->assertStatus(204);
+
+        $this->assertDatabaseHas('user_profiles', [
+            'email' => $user->email,
+            'point' => 13,
+            'ban_reason' => '違規計點超過 10 點自動封禁',
+        ]);
+    }
+
+    public function testUpdateUserPointsUserNotFound()
+    {
+        $response = $this->putJson("/api/users/nonexistent@example.com/points", [
+            'points' => 5,
+        ]);
+
+        $response->assertStatus(400)
+                 ->assertJson(['error' => 'User not found']);
+    }
 }
