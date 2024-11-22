@@ -15,28 +15,22 @@ class UserProfileControllerTest extends TestCase
      */
     public function testIndexReturnsAllUsers()
     {
-        // 建立假資料
         UserProfile::factory()->count(15)->create();
 
-        // 發送請求
         $response = $this->json('GET', '/api/users', [
             'pageSize' => 10,
             'pageOffset' => 0,
         ]);
 
-        // 驗證響應
         $response->assertStatus(200)
-            ->assertJsonCount(10, 'data') // 確認返回 10 筆資料
+            ->assertJsonCount(10, 'data')
             ->assertJsonStructure([
                 'data' => [
                     '*' => [
-                        'id',
                         'email',
                         'is_in',
                         'point',
                         'name',
-                        'phone',
-                        'id_card',
                     ],
                 ],
                 'count',
@@ -48,68 +42,61 @@ class UserProfileControllerTest extends TestCase
      */
     public function testIndexFiltersUsers()
     {
-        // 建立假資料
         UserProfile::factory()->create([
             'email' => 'testuser@example.com',
             'is_in' => true,
             'name' => 'Test User',
-            'id' => '123e4567-e89b-12d3-a456-426614174000',
+            'role' => 'user',
         ]);
 
         UserProfile::factory()->create([
             'email' => 'anotheruser@example.com',
             'is_in' => false,
             'name' => 'Another User',
-            'id' => '223e4567-e89b-12d3-a456-426614174000',
+            'role'=> 'user',
         ]);
 
-        // 發送請求帶過濾條件
         $response = $this->json('GET', '/api/users', [
             'filters' => [
                 'email' => 'testuser@example.com',
                 'is_in' => true,
                 'name' => 'Test',
-                'user_id' => '123e4567-e89b-12d3-a456-426614174000',
+                'role'=> 'user',
             ],
         ]);
 
-        // 驗證響應
         $response->assertStatus(200)
-            ->assertJsonCount(1, 'data') // 應只返回 1 筆
-            ->assertJsonPath('data.0.email', 'testuser@example.com') // 確認返回的用戶
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.email', 'testuser@example.com')
             ->assertJsonPath('data.0.is_in', 1);
     }
 
     public function testIndexFiltersUsersWithUserId()
     {
-        // 建立假資料
         UserProfile::factory()->create([
             'email' => 'testuser@example.com',
             'is_in' => true,
             'name' => 'Test User',
-            'id' => '123e4567-e89b-12d3-a456-426614174000',
+            'role'=> 'user',
         ]);
 
         UserProfile::factory()->create([
             'email' => 'anotheruser@example.com',
             'is_in' => false,
             'name' => 'Another User',
-            'id' => '223e4567-e89b-12d3-a456-426614174000',
+            'role'=> 'admin',
         ]);
 
-        // 發送請求帶過濾條件
         $response = $this->json('GET', '/api/users', [
             'filters' => [
-                'user_id' => '123e4567-e89b-12d3-a456-426614174000',
+                'email'=> 'testuser@example.com',
             ],
         ]);
 
-        // 驗證響應
         $response->assertStatus(200)
-            ->assertJsonCount(1, 'data') // 應只返回 1 筆資料
-            ->assertJsonPath('data.0.id', '123e4567-e89b-12d3-a456-426614174000') // 驗證返回的 ID
-            ->assertJsonPath('data.0.email', 'testuser@example.com') // 驗證返回的 email
-            ->assertJsonPath('data.0.name', 'Test User'); // 驗證返回的 name
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.email', 'testuser@example.com')
+            ->assertJsonPath('data.0.name', 'Test User');
     }
 
 
@@ -118,22 +105,18 @@ class UserProfileControllerTest extends TestCase
      */
     public function testIndexPagination()
     {
-        // 建立假資料
         UserProfile::factory()->count(20)->create();
 
-        // 發送第一頁請求
         $responsePage1 = $this->json('GET', '/api/users', [
             'pageSize' => 10,
             'pageOffset' => 0,
         ]);
 
-        // 發送第二頁請求
         $responsePage2 = $this->json('GET', '/api/users', [
             'pageSize' => 10,
             'pageOffset' => 10,
         ]);
 
-        // 驗證第一頁和第二頁返回資料不同
         $responsePage1->assertStatus(200)
             ->assertJsonCount(10, 'data');
 
@@ -151,13 +134,53 @@ class UserProfileControllerTest extends TestCase
      */
     public function testIndexValidationFails()
     {
-        // 發送請求，缺少必要參數
         $response = $this->json('GET', '/api/users', [
-            'pageSize' => 'invalid', // 無效的 pageSize
+            'pageSize' => 'invalid',
         ]);
 
-        // 確認返回 422 狀態碼
         $response->assertStatus(422)
             ->assertJsonValidationErrors('pageSize');
+    }
+
+    public function testGetProfileSuccess()
+    {
+        UserProfile::factory()->create([
+            'email' => 'test@example.com',
+            'name' => 'Test User',
+            'is_in' => true,
+            'point' => 10,
+            'role' => 'user',
+        ]);
+
+        $response = $this->withHeaders([
+            'X-User-Info' => json_encode(['email' => 'test@example.com']),
+        ])->get('/api/users/me');
+
+        $response->assertStatus(200)
+                 ->assertJson([
+                     'email' => 'test@example.com',
+                     'name' => 'Test User',
+                     'is_in' => true,
+                     'point' => 10,
+                     'role' => 'user',
+                 ]);
+    }
+
+    public function testGetProfileNotFound()
+    {
+        $response = $this->withHeaders([
+            'X-User-Info' => json_encode(['email' => 'nonexistent@example.com']),
+        ])->get('/api/users/me');
+
+        $response->assertStatus(404)
+                 ->assertJson(['error' => 'User not found']);
+    }
+
+    public function testHeaderMissing()
+    {
+        $response = $this->get('/api/users/me');
+
+        $response->assertStatus(400)
+                 ->assertJson(['error' => 'X-User-Info header is missing']);
     }
 }
