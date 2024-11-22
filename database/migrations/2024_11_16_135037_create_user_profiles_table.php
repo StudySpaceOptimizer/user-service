@@ -13,7 +13,9 @@ class CreateUserProfilesTable extends Migration
             $table->boolean('is_in')->default(false);
             $table->integer('point')->default(0);
             $table->string('name')->nullable();
-            $table->enum('role', ['user', 'admin'])->nullable();
+            $table->enum('role', ['user', 'admin'])->default('user');
+            $table->string('ban_reason')->nullable();
+            $table->timestamp('ban_end_at')->nullable();
             $table->timestamps();
         });
     }

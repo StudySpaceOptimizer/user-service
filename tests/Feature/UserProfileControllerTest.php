@@ -252,4 +252,57 @@ class UserProfileControllerTest extends TestCase
                 'admin' => 2,
             ]);
     }
+
+    public function testBanUser()
+    {
+        $user = UserProfile::factory()->create([
+            'email' => 'test@example.com',
+        ]);
+
+        $response = $this->postJson("/api/users/{$user->email}/ban", [
+            'reason' => 'Violation of terms',
+            'end_at' => now()->addDays(7)->toISOString(),
+        ]);
+
+        $response->assertStatus(204);
+
+        $this->assertDatabaseHas('user_profiles', [
+            'email' => $user->email,
+            'ban_reason' => 'Violation of terms',
+        ]);
+    }
+
+    public function testBanUserValidationFails()
+    {
+        $user = UserProfile::factory()->create([
+            'email' => 'test@example.com',
+        ]);
+
+        $response = $this->postJson("/api/users/{$user->email}/ban", [
+            'reason' => '',
+            'end_at' => 'invalid-date',
+        ]);
+
+        $response->assertStatus(422)
+                 ->assertJsonValidationErrors(['reason', 'end_at']);
+    }
+
+    public function testUnbanUser()
+    {
+        $user = UserProfile::factory()->create([
+            'email' => 'test@example.com',
+            'ban_reason' => 'Violation of terms',
+            'ban_end_at' => now()->addDays(7),
+        ]);
+
+        $response = $this->deleteJson("/api/users/{$user->email}/ban");
+
+        $response->assertStatus(204);
+
+        $this->assertDatabaseHas('user_profiles', [
+            'email' => $user->email,
+            'ban_reason' => null,
+            'ban_end_at' => null,
+        ]);
+    }
 }

@@ -122,4 +122,41 @@ class UserProfileController extends Controller
             'admin' => $adminCount,
         ]);
     }
+
+    public function banUser(Request $request, $email)
+    {
+        $user = UserProfile::where('email', $email)->first();
+
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 400);
+        }
+
+        $data = $request->validate([
+            'reason' => 'required|string|max:255',
+            'end_at' => 'required|date|after:now',
+        ]);
+
+        $user->update([
+            'ban_reason' => $data['reason'],
+            'ban_end_at' => $data['end_at'],
+        ]);
+
+        return response()->noContent();
+    }
+
+    public function unbanUser($email)
+    {
+        $user = UserProfile::where('email', $email)->first();
+
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 400);
+        }
+
+        $user->update([
+            'ban_reason' => null,
+            'ban_end_at' => null,
+        ]);
+
+        return response()->noContent();
+    }
 }

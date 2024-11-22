@@ -17,7 +17,9 @@ class UserProfile extends Model implements JWTSubject
         'is_in',
         'point',
         'name',
-        'role'
+        'role',
+        'ban_reason',
+        'ban_end_at'
     ];
 
     public $incrementing = false;
