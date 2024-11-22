@@ -183,4 +183,18 @@ class UserProfileControllerTest extends TestCase
         $response->assertStatus(400)
                  ->assertJson(['error' => 'X-User-Info header is missing']);
     }
+
+    public function testGetUsersCount()
+    {
+        UserProfile::factory()->count(5)->create(['role' => 'user']);
+        UserProfile::factory()->count(2)->create(['role' => 'admin']);
+
+        $response = $this->get('/api/users/count');
+
+        $response->assertStatus(200)
+                 ->assertJson([
+                     'normal' => 5,
+                     'admin' => 2,
+                 ]);
+    }
 }

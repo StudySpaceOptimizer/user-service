@@ -13,7 +13,8 @@
 use App\Http\Controllers\UserProfileController;
 use App\Http\Controllers\AuthController;
 
-Route::get('/users', [UserProfileController::class, 'getAllUsers']);
-Route::get('/users/me', [UserProfileController::class, 'getMyUser']);
+Route::get('/users', [UserProfileController::class, 'index']);
+Route::get('/users/me', [UserProfileController::class, 'me']);
+Route::get('/users/count', [UserProfileController::class, 'getUsersCount']);
 Route::get('/auth/callback', [AuthController::class, 'callback']);
 

@@ -72,4 +72,15 @@ class UserProfileController extends Controller
             'role' => $userProfile->role,
         ]);
     }
+
+    public function getUsersCount()
+    {
+        $normalCount = UserProfile::where('role', 'user')->count();
+        $adminCount = UserProfile::where('role', 'admin')->count();
+
+        return response()->json([
+            'normal' => $normalCount,
+            'admin' => $adminCount,
+        ]);
+    }
 }
