@@ -5,10 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\UserProfile;
 use App\Http\Requests\UserProfileRequest;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class UserProfileController extends Controller
 {
-    public function getAllUsers(UserProfileRequest $request)
+    public function getAllProfile(UserProfileRequest $request)
     {
         $validated = $request->validated(); // 驗證後的資料
         $pageSize = $validated['pageSize'] ?? 10;
@@ -42,7 +43,7 @@ class UserProfileController extends Controller
         ]);
     }
 
-    public function getMyUser(Request $request)
+    public function getMyProfile(Request $request)
     {
         $userInfo = $request->header('X-User-Info');
 
@@ -71,6 +72,44 @@ class UserProfileController extends Controller
             'point' => $userProfile->point,
             'role' => $userProfile->role,
         ]);
+    }
+
+    public function updateMyProfile(Request $request)
+    {
+        $userInfo = $request->header('X-User-Info');
+
+        if (!$userInfo) {
+            return response()->json(['error' => 'X-User-Info header is missing'], 400);
+        }
+
+        $decodedInfo = json_decode($userInfo, true);
+        $email = $decodedInfo['email'] ?? null;
+
+        if (!$email) {
+            return response()->json(['error' => 'Email not found in X-User-Info'], 400);
+        }
+
+        $user = UserProfile::where('email', $email)->first();
+
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
+        try {
+            $request->validate([
+                'name' => 'required|string|max:255',
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        }
+
+        $user->name = $request->input('name');
+        $user->save();
+
+        return response()->json(['message' => 'Profile updated successfully'], 200);
     }
 
     public function getUsersCount()

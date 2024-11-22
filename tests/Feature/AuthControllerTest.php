@@ -16,7 +16,7 @@ class AuthControllerTest extends TestCase
         $response = $this->get('/api/auth/callback');
 
         $response->assertStatus(400)
-                 ->assertJson(['error' => 'Authorization code is missing']);
+            ->assertJson(['error' => 'Authorization code is missing']);
     }
 
     public function testCallbackTokenExchangeFails()
@@ -28,7 +28,7 @@ class AuthControllerTest extends TestCase
         $response = $this->get('/api/auth/callback?code=invalid_code');
 
         $response->assertStatus(400)
-                 ->assertJsonStructure(['error', 'response', 'data']);
+            ->assertJsonStructure(['error', 'response', 'data']);
     }
 
     public function testCallbackProfileFetchFails()
@@ -41,7 +41,7 @@ class AuthControllerTest extends TestCase
         $response = $this->get('/api/auth/callback?code=valid_code');
 
         $response->assertStatus(401)
-                 ->assertJson(['error' => 'Failed to fetch user profile']);
+            ->assertJson(['error' => 'Failed to fetch user profile']);
     }
 
     public function testCallbackEmailNotFoundInProfile()
@@ -54,20 +54,23 @@ class AuthControllerTest extends TestCase
         $response = $this->get('/api/auth/callback?code=valid_code');
 
         $response->assertStatus(400)
-                 ->assertJson(['error' => 'Email not found in user profile']);
+            ->assertJson(['error' => 'Email not found in user profile']);
     }
 
     public function testCallbackCreatesNewUserAndReturnsJwt()
     {
         Http::fake([
             config('app.oauth_token_url') => Http::response(['access_token' => 'valid_token'], 200),
-            config('app.oauth_profile_url') => Http::response(['email' => 'test@example.com', 'name' => 'Test User'], 200),
+            config('app.oauth_profile_url') => Http::response([
+                'email' => 'test@example.com',
+                'name' => 'Test User'
+            ], 200),
         ]);
 
         $response = $this->get('/api/auth/callback?code=valid_code');
 
         $response->assertStatus(200)
-                 ->assertJson(['message' => 'Login successful']);
+            ->assertJson(['message' => 'Login successful']);
 
         $this->assertDatabaseHas('user_profiles', [
             'email' => 'test@example.com',
@@ -93,7 +96,7 @@ class AuthControllerTest extends TestCase
         $response = $this->get('/api/auth/callback?code=valid_code');
 
         $response->assertStatus(200)
-                 ->assertJson(['message' => 'Login successful']);
+            ->assertJson(['message' => 'Login successful']);
 
         $this->assertDatabaseHas('user_profiles', [
             'email' => 'existing@example.com',

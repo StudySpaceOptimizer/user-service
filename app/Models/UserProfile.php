@@ -21,7 +21,7 @@ class UserProfile extends Model implements JWTSubject
     ];
 
     public $incrementing = false;
-    protected $primaryKey = 'email'; 
+    protected $primaryKey = 'email';
     protected $keyType = 'string';
 
     public function getJWTIdentifier()

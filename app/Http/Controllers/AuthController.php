@@ -35,7 +35,7 @@ class AuthController extends Controller
                     'client_secret' => config('app.oauth_client_secret'),
                     'redirect_uri' => config('app.oauth_redirect_uri'),
                 ]
-            ], $tokenResponse->status());   
+            ], $tokenResponse->status());
         }
 
         $accessToken = $tokenResponse->json()['access_token'];
