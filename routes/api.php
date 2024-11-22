@@ -11,5 +11,7 @@
 |
 */
 use App\Http\Controllers\UserProfileController;
+use App\Http\Controllers\AuthController;
 
 Route::get('/users', [UserProfileController::class, 'index']);
+Route::get('/auth/callback', [AuthController::class, 'callback']);

@@ -185,4 +185,9 @@ return [
         // 'Example' => App\Facades\Example::class,
     ])->toArray(),
 
+    'oauth_client_id' => env('OAUTH_CLIENT_ID'),
+    'oauth_client_secret' => env('OAUTH_CLIENT_SECRET'),
+    'oauth_redirect_uri' => env('OAUTH_REDIRECT_URI'),
+    'oauth_token_url' => env('OAUTH_TOKEN_URL'),
+    'oauth_profile_url' => env('OAUTH_PROFILE_URL'),
 ];
