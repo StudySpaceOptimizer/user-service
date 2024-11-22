@@ -22,6 +22,9 @@
                 "action": "\\CaptainHook\\App\\Hook\\PHP\\Action\\Linting"
             },
             {
+                "action": "./vendor/bin/pint"
+            },
+            {
                 "action": "XDEBUG_MODE=coverage php artisan test --coverage-html=coverage-html"
             },
             {
