@@ -12,6 +12,7 @@
 */
 use App\Http\Controllers\UserProfileController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\SettingsController;
 
 Route::get('/users', [UserProfileController::class, 'getAllProfile']);
 Route::get('/users/me', [UserProfileController::class, 'getMyProfile']);
@@ -22,3 +23,5 @@ Route::delete('/users/{email}/ban', [UserProfileController::class, 'unbanUser'])
 Route::put('/users/{email}/points', [UserProfileController::class, 'updateUserPoints']);
 Route::post('/users/{email}/grant-role', [UserProfileController::class, 'grantRole']);
 Route::get('/auth/callback', [AuthController::class, 'callback']);
+Route::get('/settings', [SettingsController::class, 'getSettings']);
+Route::put('/settings', [SettingsController::class, 'updateSettings']);
