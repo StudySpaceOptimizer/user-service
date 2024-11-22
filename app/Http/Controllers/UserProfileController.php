@@ -129,7 +129,7 @@ class UserProfileController extends Controller
         $user = UserProfile::where('email', $email)->first();
 
         if (!$user) {
-            return response()->json(['error' => 'User not found'], 400);
+            return response()->json(['error' => 'User not found'], 404);
         }
 
         $data = $request->validate([
@@ -150,7 +150,7 @@ class UserProfileController extends Controller
         $user = UserProfile::where('email', $email)->first();
 
         if (!$user) {
-            return response()->json(['error' => 'User not found'], 400);
+            return response()->json(['error' => 'User not found'], 404);
         }
 
         $user->update([
@@ -166,7 +166,7 @@ class UserProfileController extends Controller
         $user = UserProfile::where('email', $email)->first();
 
         if (!$user) {
-            return response()->json(['error' => 'User not found'], 400);
+            return response()->json(['error' => 'User not found'], 404);
         }
 
         try {
@@ -177,7 +177,7 @@ class UserProfileController extends Controller
             return response()->json([
                 'message' => 'Validation failed',
                 'errors' => $e->errors(),
-            ], 422);
+            ], 400);
         }
 
         $user->update([
@@ -199,7 +199,7 @@ class UserProfileController extends Controller
         $user = UserProfile::where('email', $email)->first();
 
         if (!$user) {
-            return response()->json(['error' => 'User not found'], 400);
+            return response()->json(['error' => 'User not found'], 404);
         }
 
         $data = $request->validate([

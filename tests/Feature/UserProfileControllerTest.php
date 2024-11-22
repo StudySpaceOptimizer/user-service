@@ -142,7 +142,7 @@ class UserProfileControllerTest extends TestCase
             ->assertJsonValidationErrors('pageSize');
     }
 
-    public function testGetProfileSuccess()
+    public function testGetMyProfileSuccess()
     {
         UserProfile::factory()->create([
             'email' => 'test@example.com',
@@ -166,7 +166,7 @@ class UserProfileControllerTest extends TestCase
             ]);
     }
 
-    public function testGetProfileNotFound()
+    public function testGetMyProfileNotFound()
     {
         $response = $this->withHeaders([
             'X-User-Info' => json_encode(['email' => 'nonexistent@example.com']),
@@ -176,12 +176,22 @@ class UserProfileControllerTest extends TestCase
             ->assertJson(['error' => 'User not found']);
     }
 
-    public function testHeaderMissing()
+    public function testGetMyProfileHeaderMissing()
     {
         $response = $this->get('/api/users/me');
 
         $response->assertStatus(400)
             ->assertJson(['error' => 'X-User-Info header is missing']);
+    }
+
+    public function testGetMyProfileHeaderEmailMissing()
+    {
+        $response = $this->withHeaders([
+            'X-User-Info' => json_encode([]),
+        ])->get('/api/users/me');
+
+        $response->assertStatus(400)
+            ->assertJson(['error' => 'Email is missing in X-User-Info']);
     }
 
     public function testUpdateMyProfileSuccess()
@@ -206,6 +216,18 @@ class UserProfileControllerTest extends TestCase
         ]);
     }
 
+    public function testUpdateMyProfileNotFound()
+    {
+        $response = $this->withHeaders([
+            'X-User-Info' => json_encode(['email' => 'test@example.com']),
+        ])->put('/api/users/me', [
+                    'name' => 'New Name',
+                ]);
+
+        $response->assertStatus(404)
+            ->assertJson(['error' => 'User not found']);
+    }
+
     public function testUpdateMyProfileMissingHeader()
     {
         $response = $this->put('/api/users/me', [
@@ -214,6 +236,18 @@ class UserProfileControllerTest extends TestCase
 
         $response->assertStatus(400)
             ->assertJson(['error' => 'X-User-Info header is missing']);
+    }
+
+    public function testUpdateMyProfileMissingEmail()
+    {
+        $response = $this->withHeaders([
+            'X-User-Info' => json_encode([]),
+        ])->put('/api/users/me', [
+                    'name' => 'New Name',
+                ]);
+
+        $response->assertStatus(400)
+            ->assertJson(['error' => 'Email not found in X-User-Info']);
     }
 
     public function testUpdateMyProfileInvalidInput()
@@ -272,6 +306,17 @@ class UserProfileControllerTest extends TestCase
         ]);
     }
 
+    public function testBanUserNotFound()
+    {
+        $response = $this->postJson("/api/users/nonexistent@example.com/ban", [
+            'reason' => 'Violation of terms',
+            'end_at' => now()->addDays(7)->toISOString(),
+        ]);
+
+        $response->assertStatus(404)
+            ->assertJson(['error' => 'User not found']);
+    }
+
     public function testBanUserValidationFails()
     {
         $user = UserProfile::factory()->create([
@@ -284,7 +329,7 @@ class UserProfileControllerTest extends TestCase
         ]);
 
         $response->assertStatus(422)
-                 ->assertJsonValidationErrors(['reason', 'end_at']);
+            ->assertJsonValidationErrors(['reason', 'end_at']);
     }
 
     public function testUnbanUser()
@@ -305,7 +350,13 @@ class UserProfileControllerTest extends TestCase
             'ban_end_at' => null,
         ]);
     }
+    public function testUnbanUserNotFound()
+    {
+        $response = $this->deleteJson("/api/users/nonexistent@example.com/ban");
 
+        $response->assertStatus(404)
+            ->assertJson(['error' => 'User not found']);
+    }
     public function testUpdateUserPoints()
     {
         $user = UserProfile::factory()->create([
@@ -323,6 +374,23 @@ class UserProfileControllerTest extends TestCase
             'email' => $user->email,
             'point' => 8,
         ]);
+    }
+
+    public function testUpdateUserPointsFails()
+    {
+        $user = UserProfile::factory()->create([
+            'email' => 'test@example.com',
+            'point' => 5,
+        ]);
+
+        $response = $this->putJson("/api/users/{$user->email}/points", [
+            'points' => 'invalid',
+        ]);
+
+        $response->assertStatus(400)
+            ->assertJsonFragment([
+                'points' => ['The points field must be an integer.'],
+            ]);
     }
 
     public function testAutoBanUserWhenPointsExceed10()
@@ -351,8 +419,8 @@ class UserProfileControllerTest extends TestCase
             'points' => 5,
         ]);
 
-        $response->assertStatus(400)
-                 ->assertJson(['error' => 'User not found']);
+        $response->assertStatus(404)
+            ->assertJson(['error' => 'User not found']);
     }
 
     public function testGrantRoleSuccess()
@@ -386,7 +454,7 @@ class UserProfileControllerTest extends TestCase
         ]);
 
         $response->assertStatus(422)
-                 ->assertJsonValidationErrors('role');
+            ->assertJsonValidationErrors('role');
     }
 
     public function testGrantRoleUserNotFound()
@@ -395,7 +463,7 @@ class UserProfileControllerTest extends TestCase
             'role' => 'admin',
         ]);
 
-        $response->assertStatus(400)
-                 ->assertJson(['error' => 'User not found']);
+        $response->assertStatus(404)
+            ->assertJson(['error' => 'User not found']);
     }
 }

@@ -56,10 +56,6 @@ class AuthController extends Controller
             'role' => 'user',
         ]);
 
-        if (!$user->getKey()) {
-            return response()->json(['error' => 'Failed to set primary key'], 500);
-        }
-
         $jwt = JWTAuth::fromUser($user);
 
         return response()->json(['message' => 'Login successful'])->cookie(
