@@ -28,13 +28,6 @@ class AuthController extends Controller
             return response()->json([
                 'error' => 'Failed to exchange token',
                 'response' => $tokenResponse->json(),
-                'data' => [
-                    'grant_type' => 'authorization_code',
-                    'code' => $code,
-                    'client_id' => config('app.oauth_client_id'),
-                    'client_secret' => config('app.oauth_client_secret'),
-                    'redirect_uri' => config('app.oauth_redirect_uri'),
-                ]
             ], $tokenResponse->status());
         }
 

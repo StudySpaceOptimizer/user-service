@@ -58,18 +58,6 @@
      ```  
    - Status Codes: 200 (Success), 422 (Validation Error)  
 
-4. Get Users Count  
-   - Endpoint: `GET /api/users/count`  
-   - Input: None  
-   - Headers: X-User-Info: { "email": "string" }
-   - Output:  
-     ```json
-     {
-       "normal": "number",
-       "admin": "number"
-     }
-     ```  
-
 5. Update My Profile  
    - Endpoint: `PUT /api/users/me`  
    - Headers: X-User-Info: { "email": "string" }

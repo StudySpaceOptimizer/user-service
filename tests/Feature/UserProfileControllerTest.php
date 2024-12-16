@@ -20,6 +20,9 @@ class UserProfileControllerTest extends TestCase
         $response = $this->json('GET', '/api/users', [
             'pageSize' => 10,
             'pageOffset' => 0,
+        ], [
+            'X-User-Email' => 'admin@example.com',
+            'X-User-Role' => 'admin',
         ]);
 
         $response->assertStatus(200)
@@ -63,6 +66,9 @@ class UserProfileControllerTest extends TestCase
                 'name' => 'Test',
                 'role' => 'user',
             ],
+        ], [
+            'X-User-Email' => 'admin@example.com',
+            'X-User-Role' => 'admin',
         ]);
 
         $response->assertStatus(200)
@@ -91,6 +97,9 @@ class UserProfileControllerTest extends TestCase
             'filters' => [
                 'email' => 'testuser@example.com',
             ],
+        ], [
+            'X-User-Email' => 'admin@example.com',
+            'X-User-Role' => 'admin',
         ]);
 
         $response->assertStatus(200)
@@ -110,11 +119,17 @@ class UserProfileControllerTest extends TestCase
         $responsePage1 = $this->json('GET', '/api/users', [
             'pageSize' => 10,
             'pageOffset' => 0,
+        ], [
+            'X-User-Email' => 'admin@example.com',
+            'X-User-Role' => 'admin',
         ]);
 
         $responsePage2 = $this->json('GET', '/api/users', [
             'pageSize' => 10,
             'pageOffset' => 10,
+        ], [
+            'X-User-Email' => 'admin@example.com',
+            'X-User-Role' => 'admin',
         ]);
 
         $responsePage1->assertStatus(200)
@@ -136,6 +151,9 @@ class UserProfileControllerTest extends TestCase
     {
         $response = $this->json('GET', '/api/users', [
             'pageSize' => 'invalid',
+        ], [
+            'X-User-Email' => 'admin@example.com',
+            'X-User-Role' => 'admin',
         ]);
 
         $response->assertStatus(422)
@@ -152,9 +170,10 @@ class UserProfileControllerTest extends TestCase
             'role' => 'user',
         ]);
 
-        $response = $this->withHeaders([
-            'X-User-Info' => json_encode(['email' => 'test@example.com']),
-        ])->get('/api/users/me');
+        $response = $this->get('/api/users/me', [
+            'X-User-Email' => 'test@example.com',
+            'X-User-Role' => 'user',
+        ]);
 
         $response->assertStatus(200)
             ->assertJson([
@@ -168,30 +187,13 @@ class UserProfileControllerTest extends TestCase
 
     public function testGetMyProfileNotFound()
     {
-        $response = $this->withHeaders([
-            'X-User-Info' => json_encode(['email' => 'nonexistent@example.com']),
-        ])->get('/api/users/me');
+        $response = $this->get('/api/users/me', [
+            'X-User-Email' => 'not-exist@example.com',
+            'X-User-Role' => 'user',
+        ]);
 
         $response->assertStatus(404)
             ->assertJson(['error' => 'User not found']);
-    }
-
-    public function testGetMyProfileHeaderMissing()
-    {
-        $response = $this->get('/api/users/me');
-
-        $response->assertStatus(400)
-            ->assertJson(['error' => 'X-User-Info header is missing']);
-    }
-
-    public function testGetMyProfileHeaderEmailMissing()
-    {
-        $response = $this->withHeaders([
-            'X-User-Info' => json_encode([]),
-        ])->get('/api/users/me');
-
-        $response->assertStatus(400)
-            ->assertJson(['error' => 'Email is missing in X-User-Info']);
     }
 
     public function testUpdateMyProfileSuccess()
@@ -201,11 +203,12 @@ class UserProfileControllerTest extends TestCase
             'name' => 'Old Name',
         ]);
 
-        $response = $this->withHeaders([
-            'X-User-Info' => json_encode(['email' => 'test@example.com']),
-        ])->put('/api/users/me', [
-                    'name' => 'New Name',
-                ]);
+        $response = $this->put('/api/users/me', [
+            'name' => 'New Name',
+        ], [
+            'X-User-Email' => 'test@example.com',
+            'X-User-Role' => 'user',
+        ]);
 
         $response->assertStatus(200)
             ->assertJson(['message' => 'Profile updated successfully']);
@@ -218,36 +221,15 @@ class UserProfileControllerTest extends TestCase
 
     public function testUpdateMyProfileNotFound()
     {
-        $response = $this->withHeaders([
-            'X-User-Info' => json_encode(['email' => 'test@example.com']),
-        ])->put('/api/users/me', [
-                    'name' => 'New Name',
-                ]);
+        $response = $this->put('/api/users/me', [
+            'name' => 'New Name',
+        ], [
+            'X-User-Email' => 'admin@example.com',
+            'X-User-Role' => 'admin',
+        ]);
 
         $response->assertStatus(404)
             ->assertJson(['error' => 'User not found']);
-    }
-
-    public function testUpdateMyProfileMissingHeader()
-    {
-        $response = $this->put('/api/users/me', [
-            'name' => 'New Name',
-        ]);
-
-        $response->assertStatus(400)
-            ->assertJson(['error' => 'X-User-Info header is missing']);
-    }
-
-    public function testUpdateMyProfileMissingEmail()
-    {
-        $response = $this->withHeaders([
-            'X-User-Info' => json_encode([]),
-        ])->put('/api/users/me', [
-                    'name' => 'New Name',
-                ]);
-
-        $response->assertStatus(400)
-            ->assertJson(['error' => 'Email not found in X-User-Info']);
     }
 
     public function testUpdateMyProfileInvalidInput()
@@ -257,11 +239,12 @@ class UserProfileControllerTest extends TestCase
             'name' => 'Old Name',
         ]);
 
-        $response = $this->withHeaders([
-            'X-User-Info' => json_encode(['email' => 'test@example.com']),
-        ])->put('/api/users/me', [
-                    'name' => '',
-                ]);
+        $response = $this->put('/api/users/me', [
+            'name' => '',
+        ], [
+            'X-User-Email' => 'test@example.com',
+            'X-User-Role' => 'user',
+        ]);
 
 
         $response->assertStatus(422)
@@ -270,20 +253,6 @@ class UserProfileControllerTest extends TestCase
                 'errors' => [
                     'name',
                 ],
-            ]);
-    }
-
-    public function testGetUsersCount()
-    {
-        UserProfile::factory()->count(5)->create(['role' => 'user']);
-        UserProfile::factory()->count(2)->create(['role' => 'admin']);
-
-        $response = $this->get('/api/users/count');
-
-        $response->assertStatus(200)
-            ->assertJson([
-                'normal' => 5,
-                'admin' => 2,
             ]);
     }
 
@@ -296,6 +265,9 @@ class UserProfileControllerTest extends TestCase
         $response = $this->postJson("/api/users/{$user->email}/ban", [
             'reason' => 'Violation of terms',
             'end_at' => now()->addDays(7)->toISOString(),
+        ], [
+            'X-User-Email' => 'admin@example.com',
+            'X-User-Role' => 'admin',
         ]);
 
         $response->assertStatus(204);
@@ -311,6 +283,9 @@ class UserProfileControllerTest extends TestCase
         $response = $this->postJson("/api/users/nonexistent@example.com/ban", [
             'reason' => 'Violation of terms',
             'end_at' => now()->addDays(7)->toISOString(),
+        ], [
+            'X-User-Email' => 'admin@example.com',
+            'X-User-Role' => 'admin',
         ]);
 
         $response->assertStatus(404)
@@ -326,6 +301,9 @@ class UserProfileControllerTest extends TestCase
         $response = $this->postJson("/api/users/{$user->email}/ban", [
             'reason' => '',
             'end_at' => 'invalid-date',
+        ], [
+            'X-User-Email' => 'admin@example.com',
+            'X-User-Role' => 'admin',
         ]);
 
         $response->assertStatus(422)
@@ -340,7 +318,10 @@ class UserProfileControllerTest extends TestCase
             'ban_end_at' => now()->addDays(7),
         ]);
 
-        $response = $this->deleteJson("/api/users/{$user->email}/ban");
+        $response = $this->deleteJson("/api/users/{$user->email}/ban", [], [
+            'X-User-Email' => 'admin@example.com',
+            'X-User-Role' => 'admin',
+        ]);
 
         $response->assertStatus(204);
 
@@ -352,7 +333,10 @@ class UserProfileControllerTest extends TestCase
     }
     public function testUnbanUserNotFound()
     {
-        $response = $this->deleteJson("/api/users/nonexistent@example.com/ban");
+        $response = $this->deleteJson("/api/users/nonexistent@example.com/ban", [], [
+            'X-User-Email' => 'admin@example.com',
+            'X-User-Role' => 'admin',
+        ]);
 
         $response->assertStatus(404)
             ->assertJson(['error' => 'User not found']);
@@ -366,6 +350,9 @@ class UserProfileControllerTest extends TestCase
 
         $response = $this->putJson("/api/users/{$user->email}/points", [
             'points' => 8,
+        ], [
+            'X-User-Email' => 'admin@example.com',
+            'X-User-Role' => 'admin',
         ]);
 
         $response->assertStatus(204);
@@ -385,6 +372,9 @@ class UserProfileControllerTest extends TestCase
 
         $response = $this->putJson("/api/users/{$user->email}/points", [
             'points' => 'invalid',
+        ], [
+            'X-User-Email' => 'admin@example.com',
+            'X-User-Role' => 'admin',
         ]);
 
         $response->assertStatus(400)
@@ -402,6 +392,9 @@ class UserProfileControllerTest extends TestCase
 
         $response = $this->putJson("/api/users/{$user->email}/points", [
             'points' => 13,
+        ], [
+            'X-User-Email' => 'admin@example.com',
+            'X-User-Role' => 'admin',
         ]);
 
         $response->assertStatus(204);
@@ -417,6 +410,9 @@ class UserProfileControllerTest extends TestCase
     {
         $response = $this->putJson("/api/users/nonexistent@example.com/points", [
             'points' => 5,
+        ], [
+            'X-User-Email' => 'admin@example.com',
+            'X-User-Role' => 'admin',
         ]);
 
         $response->assertStatus(404)
@@ -432,6 +428,9 @@ class UserProfileControllerTest extends TestCase
 
         $response = $this->postJson("/api/users/{$user->email}/grant-role", [
             'role' => 'admin',
+        ], [
+            'X-User-Email' => 'admin@example.com',
+            'X-User-Role' => 'admin',
         ]);
 
         $response->assertStatus(204);
@@ -451,6 +450,9 @@ class UserProfileControllerTest extends TestCase
 
         $response = $this->postJson("/api/users/{$user->email}/grant-role", [
             'role' => 'invalid-role',
+        ], [
+            'X-User-Email' => 'admin@example.com',
+            'X-User-Role' => 'admin',
         ]);
 
         $response->assertStatus(422)
@@ -461,6 +463,9 @@ class UserProfileControllerTest extends TestCase
     {
         $response = $this->postJson("/api/users/nonexistent@example.com/grant-role", [
             'role' => 'admin',
+        ], [
+            'X-User-Email' => 'admin@example.com',
+            'X-User-Role' => 'admin',
         ]);
 
         $response->assertStatus(404)

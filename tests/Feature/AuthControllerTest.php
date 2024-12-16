@@ -28,7 +28,7 @@ class AuthControllerTest extends TestCase
         $response = $this->get('/api/auth/callback?code=invalid_code');
 
         $response->assertStatus(400)
-            ->assertJsonStructure(['error', 'response', 'data']);
+            ->assertJson(['error' => 'Failed to exchange token']);
     }
 
     public function testCallbackProfileFetchFails()

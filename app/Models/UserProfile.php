@@ -36,7 +36,8 @@ class UserProfile extends Model implements JWTSubject
         return [
             'email' => $this->email,
             'name' => $this->name,
-            'role' => $this->role
+            'role' => $this->role,
+            'iss' => 'shared-issuer',
         ];
     }
 }

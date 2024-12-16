@@ -24,8 +24,8 @@ class UserProfileController extends Controller
         if (!empty($filters['email'])) {
             $query->where('email', $filters['email']);
         }
-        if (isset($filters['is_in'])) {
-            $query->where('is_in', $filters['is_in']);
+        if (isset($filters['isIn'])) {
+            $query->where('is_in', $filters['isIn']);
         }
         if (!empty($filters['name'])) {
             $query->where('name', 'LIKE', '%' . $filters['name'] . '%');
@@ -46,19 +46,7 @@ class UserProfileController extends Controller
 
     public function getMyProfile(Request $request)
     {
-        $userInfo = $request->header('X-User-Info');
-
-        if (!$userInfo) {
-            return response()->json(['error' => 'X-User-Info header is missing'], 400);
-        }
-
-        $decodedInfo = json_decode($userInfo, true);
-
-        if (!isset($decodedInfo['email'])) {
-            return response()->json(['error' => 'Email is missing in X-User-Info'], 400);
-        }
-
-        $email = $decodedInfo['email'];
+        $email = $request->input('user.email');
 
         $userProfile = UserProfile::where('email', $email)->first();
 
@@ -77,18 +65,7 @@ class UserProfileController extends Controller
 
     public function updateMyProfile(Request $request)
     {
-        $userInfo = $request->header('X-User-Info');
-
-        if (!$userInfo) {
-            return response()->json(['error' => 'X-User-Info header is missing'], 400);
-        }
-
-        $decodedInfo = json_decode($userInfo, true);
-        $email = $decodedInfo['email'] ?? null;
-
-        if (!$email) {
-            return response()->json(['error' => 'Email not found in X-User-Info'], 400);
-        }
+        $email = $request->input('user.email');
 
         $user = UserProfile::where('email', $email)->first();
 
@@ -111,17 +88,6 @@ class UserProfileController extends Controller
         $user->save();
 
         return response()->json(['message' => 'Profile updated successfully'], 200);
-    }
-
-    public function getUsersCount()
-    {
-        $normalCount = UserProfile::where('role', 'user')->count();
-        $adminCount = UserProfile::where('role', 'admin')->count();
-
-        return response()->json([
-            'normal' => $normalCount,
-            'admin' => $adminCount,
-        ]);
     }
 
     public function banUser(Request $request, $email)

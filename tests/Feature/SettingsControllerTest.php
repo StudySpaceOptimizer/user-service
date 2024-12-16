@@ -14,7 +14,10 @@ class SettingsControllerTest extends TestCase
     {
         $this->seed(SettingsSeeder::class);
 
-        $response = $this->getJson('/api/settings');
+        $response = $this->getJson('/api/settings', [
+            'X-User-Email' => 'admin@example.com',
+            'X-User-Role' => 'admin',
+        ]);
 
         $response->assertStatus(200)
                  ->assertJsonStructure(['settings' => [
