@@ -63,7 +63,6 @@ class AuthControllerTest extends TestCase
             config('app.oauth_token_url') => Http::response(['access_token' => 'valid_token'], 200),
             config('app.oauth_profile_url') => Http::response([
                 'email' => 'test@example.com',
-                'name' => 'Test User'
             ], 200),
         ]);
 
@@ -74,7 +73,7 @@ class AuthControllerTest extends TestCase
 
         $this->assertDatabaseHas('user_profiles', [
             'email' => 'test@example.com',
-            'name' => 'Test User',
+            'name' => 'test',
             'role' => 'user',
         ]);
 

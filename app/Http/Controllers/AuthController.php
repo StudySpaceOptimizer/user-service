@@ -45,7 +45,7 @@ class AuthController extends Controller
         }
 
         $user = UserProfile::firstOrCreate(['email' => $email], [
-            'name' => $profile['name'] ?? 'Guest',
+            'name' => explode('@', $email)[0],
             'role' => 'user',
         ]);
 
